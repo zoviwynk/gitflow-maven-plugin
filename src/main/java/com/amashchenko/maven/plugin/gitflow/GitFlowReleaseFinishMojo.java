@@ -167,6 +167,14 @@ public class GitFlowReleaseFinishMojo extends AbstractGitFlowMojo {
     @Parameter(property = "skipReleaseMergeProdBranch", defaultValue = "false")
     private boolean skipReleaseMergeProdBranch = false;
 
+
+    /**
+     * Whether to skip merging into the development branch.
+     *
+     * @since 1.20.0
+     */
+    @Parameter(property = "skipReleaseMergeDevBranch", defaultValue = "false")
+    private boolean skipReleaseMergeDevBranch = false;
     /**
      * Controls which branch is merged to development branch. If set to
      * <code>true</code> then release branch will be merged to development branch.
@@ -284,7 +292,7 @@ public class GitFlowReleaseFinishMojo extends AbstractGitFlowMojo {
                 mvnRun(postReleaseGoals);
             }
 
-            if (notSameProdDevName()) {
+            if (notSameProdDevName() && !skipReleaseMergeDevBranch) {
                 // git checkout develop
                 gitCheckout(gitFlowConfig.getDevelopmentBranch());
 
