@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.amashchenko.maven.plugin</groupId>
     <artifactId>gitflow-maven-plugin</artifactId>
@@ -23,7 +24,10 @@
     <name>gitflow-maven-plugin</name>
     <version>1.19.1-SNAPSHOT</version>
 
-    <description>The Git-Flow Maven Plugin supports various Git workflows, including Vincent Driessen's successful Git branching model and GitHub Flow. This plugin runs Git and Maven commands from the command line. Supports Eclipse Plugins build with Tycho.</description>
+    <description>The Git-Flow Maven Plugin supports various Git workflows, including Vincent Driessen's successful Git
+        branching model and GitHub Flow. This plugin runs Git and Maven commands from the command line. Supports Eclipse
+        Plugins build with Tycho.
+    </description>
 
     <inceptionYear>2014</inceptionYear>
 
@@ -51,14 +55,12 @@
 
     <distributionManagement>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>wynk-nexus-repo-release</id>
+            <url>http://localhost:8081/repository/revenue-releases/</url>
         </repository>
         <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>wynk-nexus-repo-snapshot</id>
+            <url>http://localhost:8081/repository/revenue-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -88,7 +90,7 @@
                     </reportSet>
                 </reportSets>
                 <configuration>
-                   <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                 </configuration>
             </plugin>
         </plugins>
@@ -142,10 +144,64 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.amashchenko.maven.plugin</groupId>
+                <artifactId>gitflow-maven-plugin</artifactId>
+                <version>1.19.0</version>
+                <configuration>
+                    <verbose>false</verbose>
+                    <keepBranch>true</keepBranch>
+                    <pushRemote>true</pushRemote>
+                    <fetchRemote>true</fetchRemote>
+                    <allowSnapshots>true</allowSnapshots>
+                    <skipFeatureVersion>true</skipFeatureVersion>
+                    <versionDigitToIncrement>1</versionDigitToIncrement>
+                    <featureNamePattern>RG-\d{1,10}</featureNamePattern>
+                    <incrementVersionAtFinish>true</incrementVersionAtFinish>
+                    <postHotfixGoals>clean deploy -Prelease</postHotfixGoals>
+                    <postReleaseGoals>clean deploy -Prelease</postReleaseGoals>
+                    <skipReleaseMergeProdBranch>true</skipReleaseMergeProdBranch>
+                    <commitDevelopmentVersionAtStart>true</commitDevelopmentVersionAtStart>
+                    <postFeatureFinishGoals>clean deploy -Psnapshot</postFeatureFinishGoals>
+                    <gitFlowConfig>
+                        <productionBranch>master</productionBranch>
+                        <developmentBranch>develop</developmentBranch>
+                        <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>
+                        <featureBranchPrefix>feature/</featureBranchPrefix>
+                        <releaseBranchPrefix>release/</releaseBranchPrefix>
+                        <supportBranchPrefix>support/</supportBranchPrefix>
+                        <versionTagPrefix>v</versionTagPrefix>
+                        <origin>origin</origin>
+                    </gitFlowConfig>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <altReleaseDeploymentRepository>
+                        wynk-nexus-repo-release::http://localhost:8081/repository/revenue-releases/
+                    </altReleaseDeploymentRepository>
+                    <altSnapshotDeploymentRepository>
+                        wynk-nexus-repo-snapshot::http://localhost:8081/repository/revenue-snapshots/
+                    </altSnapshotDeploymentRepository>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <id>snapshot</id>
+            <distributionManagement>
+                <repository>
+                    <id>wynk-nexus-repo-snapshot</id>
+                    <name>Nexus Release snapshot</name>
+                    <url>http://localhost:8081/repository/revenue-snapshots/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
         <profile>
             <id>release</id>
             <build>
@@ -175,22 +231,15 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                 </plugins>
             </build>
+            <distributionManagement>
+                <repository>
+                    <id>wynk-nexus-repo-release</id>
+                    <name>Nexus Release Repository</name>
+                    <url>http://localhost:8081/repository/revenue-releases/</url>
+                </repository>
+            </distributionManagement>
         </profile>
         <profile>
             <id>run-its</id>
@@ -210,7 +259,6 @@
                                 <id>integration-test</id>
                                 <goals>
                                     <goal>install</goal>
-                                    <goal>run</goal>
                                 </goals>
                             </execution>
                         </executions>
